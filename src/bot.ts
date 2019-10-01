@@ -118,6 +118,7 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 
 		if (message.seats[i] !== undefined) {
 			await ctx.answerCbQuery(':( Цей варіант вже вибраний кимось іншим.');
+			return;
 		}
 
 		message.seats[i] = seat;
