@@ -104,14 +104,14 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 		const i = Number(ctx.match![1]);
 		const query = ctx.callbackQuery!;
 		const message = Seats.parse(query.message!.text!);
-		const user = '@' + query.from.username;
+		const seat = Seats.fromUser(query.from);
 
 		if (message === undefined) {
 			await ctx.answerCbQuery(':( Щось пішло не так...');
 			return;
 		}
 
-		if (Seats.has(message, user)) {
+		if (Seats.findSimilar(message, seat) !== undefined) {
 			await ctx.answerCbQuery(':( Ви вже вибрали один із варіантів.');
 			return;
 		}
@@ -120,7 +120,7 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 			await ctx.answerCbQuery(':( Цей варіант вже вибраний кимось іншим.');
 		}
 
-		message.seats[i] = user;
+		message.seats[i] = seat;
 
 		await Promise.all([
 			ctx.answerCbQuery(':) Ok'),
@@ -131,19 +131,20 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 	bot.action('leave', async ctx => {
 		const query = ctx.callbackQuery!;
 		const message = Seats.parse(query.message!.text!);
-		const user = '@' + query.from.username;
+		const seat = Seats.fromUser(query.from);
 
 		if (message === undefined) {
 			await ctx.answerCbQuery(':( Щось пішло не так...');
 			return;
 		}
 
-		if (!Seats.has(message, user)) {
+		const i = Seats.findSimilar(message, seat);
+
+		if (i === undefined) {
 			await ctx.answerCbQuery(':( Ви не вибрали жоден із варіантів.');
 			return;
 		}
 
-		const i = message.seats.indexOf(user);
 		message.seats[i] = undefined;
 
 		await Promise.all([

@@ -1,13 +1,17 @@
 import _ from 'lodash';
 import { Markup } from 'telegraf';
+import { User } from 'telegram-typings';
 
 export class SeatsParseError extends Error { }
 
-export type Seat = string | undefined;
+export type Seat =
+	| { username: string; displayName: string | undefined; }
+	| { username: undefined; displayName: string; }
+;
 
 export type SeatsMessage = {
 	caption: string | undefined;
-	seats: Seat[];
+	seats: (Seat | undefined)[];
 };
 
 export const FREE_SEAT_TEXT = 'вільно';
@@ -25,7 +29,7 @@ export const parse = (text: string): SeatsMessage | undefined => {
 
 	const [, caption, seatsText] = match;
 
-	const seats = seatsText.split('\n').map((line, i) => {
+	const seats = seatsText.split('\n').map((line, i): Seat | undefined => {
 		const match = line.match(/^(\d+) - (.*)$/);
 		if (!match || `${i + 1}` !== match[1]) {
 			throw new SeatsParseError();
@@ -36,7 +40,18 @@ export const parse = (text: string): SeatsMessage | undefined => {
 			return undefined;
 		}
 
-		return stringValue;
+		const match2 = stringValue.match(/^(@\S+)(?: \((.*)\))?$/);
+		if (match2) {
+			return {
+				username: match2[1],
+				displayName: match2[2],
+			};
+		}
+
+		return {
+			username: undefined,
+			displayName: stringValue,
+		};
 	});
 
 	return {
@@ -45,6 +60,18 @@ export const parse = (text: string): SeatsMessage | undefined => {
 	};
 };
 
+export const showSeat = (seat: Seat | undefined): string => (
+	seat === undefined
+		? FREE_SEAT_TEXT
+		: (seat.username === undefined
+			? seat.displayName
+			: (seat.displayName !== undefined
+				? `${seat.username} (${seat.displayName})`
+				: seat.username
+			)
+		)
+);
+
 export const show = (message: SeatsMessage): string => (
 	(
 		message.caption === undefined
@@ -52,12 +79,35 @@ export const show = (message: SeatsMessage): string => (
 			: message.caption + '\n'
 	) + `----------\n` + (
 		message.seats
-			.map((value, i) => `${i + 1} - ${value === undefined ? FREE_SEAT_TEXT : value}`)
+			.map((seat, i) => `${i + 1} - ${showSeat(seat)}`)
 			.join('\n')
 	)
 );
 
-export const has = (message: SeatsMessage, user: string): boolean => message.seats.includes(user);
+export const findSimilar = (message: SeatsMessage, seat: Seat): number | undefined => {
+	const index = message.seats.findIndex(other => {
+		if (other === undefined) {
+			return false;
+		}
+
+		// Bugfix for old messages
+		if (seat.username === undefined && other.username === '@undefined') {
+			return true;
+		}
+
+		if (seat.username !== undefined || other.username !== undefined) {
+			return seat.username === other.username;
+		}
+
+		return seat.displayName === other.displayName;
+	});
+
+	if (index === -1) {
+		return undefined;
+	}
+
+	return index;
+};
 
 export const getButtons = (message: SeatsMessage) => (
 	message.seats
@@ -65,3 +115,21 @@ export const getButtons = (message: SeatsMessage) => (
 			Markup.callbackButton(`${i + 1}`, `enter:${i}`),
 		)
 );
+
+export const fromUser = (user: User): Seat => {
+	const username = user.username !== undefined
+		? '@' + user.username
+		: undefined
+	;
+
+	const displayName = user.first_name + (
+		user.last_name !== undefined
+			? ' ' + user.last_name
+			: ''
+	);
+
+	return {
+		username,
+		displayName,
+	};
+};
