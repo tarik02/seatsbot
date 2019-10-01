@@ -1,0 +1,33 @@
+parser: '@typescript-eslint/parser'
+
+plugins:
+- editorconfig
+- import
+
+extends:
+- 'plugin:@typescript-eslint/recommended'
+- 'plugin:import/errors'
+- 'plugin:import/warnings'
+- 'plugin:import/typescript'
+
+parserOptions:
+  ecmaVersion: 2018
+  sourceType: module
+
+settings:
+  import/parsers:
+    '@typescript-eslint/parser': ['.ts', '.tsx']
+
+  import/resolver:
+    eslint-import-resolver-typescript: true
+
+rules:
+  editorconfig/editorconfig: error
+  sort-imports: off
+  import/order:
+  - error
+  - newlines-between: always
+  '@typescript-eslint/explicit-function-return-type': off
+  '@typescript-eslint/no-explicit-any': off
+  '@typescript-eslint/no-non-null-assertion': off
+  '@typescript-eslint/interface-name-prefix': off

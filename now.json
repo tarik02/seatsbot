@@ -1,0 +1,20 @@
+{
+	"version": 2,
+	"name": "seatsbot",
+	"env": {
+		"NODE_ENV": "production",
+		"BOT_TOKEN": "@seatsbot_token"
+	},
+	"builds": [
+		{
+			"src": "src/now.ts",
+			"use": "@now/node"
+		}
+	],
+	"routes": [
+		{
+			"src": "/.*",
+			"dest": "src/now.ts"
+		}
+	]
+}

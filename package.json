@@ -1,0 +1,64 @@
+{
+	"name": "seatsbot",
+	"private": true,
+	"version": "0.1.0",
+	"license": "MIT",
+	"author": {
+		"name": "Tarik02",
+		"url": "https://github.com/Tarik02"
+	},
+	"description": "Telegram bot for splitting seats (roles) between users in group",
+	"keywords": [
+		"telegram",
+		"bot",
+		"telegram-bot",
+		"telegraf"
+	],
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint -c .eslintrc.yml 'src/**/*.ts'",
+		"lint:fix": "yarn lint --fix",
+		"dev": "ts-node-dev --async-stack-traces --transpile-only --respawn --ignore-watch node_modules --ignore-watch dist src/index.ts",
+		"prod": "node --async-stack-traces dist/index.js",
+		"prepublishOnly": "yarn build && yarn lint"
+	},
+	"homepage": "https://github.com/Tarik02/seatsbot#readme",
+	"bugs": {
+		"url": "https://github.com/Tarik02/seatsbot/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Tarik02/seatsbot.git"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"engines": {
+		"node": ">10.0.0"
+	},
+	"dependencies": {
+		"dotenv": "^8.1.0",
+		"fs-extra": "^8.1.0",
+		"lodash": "^4.17.15",
+		"micro-bot": "^2.5.3",
+		"telegraf": "^3.32.0",
+		"tslib": "^1.10.0"
+	},
+	"devDependencies": {
+		"@now/node": "^1.0.1",
+		"@types/dotenv": "^6.1.1",
+		"@types/fs-extra": "^8.0.0",
+		"@types/lodash": "^4.14.141",
+		"@types/node": "^12.7.8",
+		"@typescript-eslint/eslint-plugin": "^2.3.2",
+		"@typescript-eslint/parser": "^2.3.2",
+		"eslint": "^6.5.0",
+		"eslint-import-resolver-typescript": "^1.1.1",
+		"eslint-plugin-editorconfig": "^2.1.2",
+		"eslint-plugin-import": "^2.18.2",
+		"ts-node": "^8.4.1",
+		"ts-node-dev": "^1.0.0-pre.43",
+		"typescript": "^3.6.3"
+	}
+}

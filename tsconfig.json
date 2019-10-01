@@ -1,0 +1,49 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "esnext",
+    "module": "commonjs",
+    "lib": [
+      "es6",
+			"es7",
+			"es2019.object",
+      "dom",
+      "esnext.asynciterable"
+    ],
+    "allowJs": false,
+    "sourceMap": true,
+    "removeComments": false,
+    "importHelpers": true,
+    "downlevelIteration": true,
+		"declaration": true,
+
+		"outDir": "./dist",
+		"tsBuildInfoFile": "./dist/.tsbuildinfo",
+		"baseUrl": "./src",
+
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+	},
+	"exclude": [
+		"node_modules",
+		"dist"
+	]
+}
