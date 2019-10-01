@@ -61,7 +61,7 @@ const setMessage = async (
 		await ctx.telegram.editMessageText(
 			ctx.chat!.id,
 			ctx.callbackQuery!.message!.message_id,
-			void 0,
+			undefined,
 			Seats.show(message),
 			{
 				reply_to_message_id: ctx.callbackQuery!.message!.reply_to_message!.message_id,
