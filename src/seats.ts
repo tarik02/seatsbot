@@ -22,7 +22,7 @@ export const create = (caption: string | undefined, seatsCount: number) => ({
 });
 
 export const parse = (text: string): SeatsMessage | undefined => {
-	const match = text.match(/^(?:(.*)\n)?----------\n(1 - .*)$/s);
+	const match = text.match(/^(?:(.*)\n)?(?:-{10}|-{40})\n(1 - .*)$/s);
 	if (!match) {
 		return;
 	}
@@ -77,7 +77,7 @@ export const show = (message: SeatsMessage): string => (
 		message.caption === undefined
 			? ''
 			: message.caption + '\n'
-	) + `----------\n` + (
+	) + '-'.repeat(40) + '\n' + (
 		message.seats
 			.map((seat, i) => `${i + 1} - ${showSeat(seat)}`)
 			.join('\n')
