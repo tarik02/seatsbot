@@ -4,15 +4,15 @@ import { User } from 'telegram-typings';
 
 export class SeatsParseError extends Error { }
 
-export type Seat =
+export type Seat = Readonly<
 	| { username: string; displayName: string | undefined; }
 	| { username: undefined; displayName: string; }
-;
+>;
 
-export type SeatsMessage = {
+export type SeatsMessage = Readonly<{
 	caption: string | undefined;
-	seats: (Seat | undefined)[];
-};
+	seats: ReadonlyArray<Seat | undefined>;
+}>;
 
 export const FREE_SEAT_TEXT = 'вільно';
 
@@ -120,7 +120,7 @@ export const fromUser = (user: User): Seat => {
 	const username = user.username !== undefined
 		? '@' + user.username
 		: undefined
-	;
+		;
 
 	const displayName = user.first_name + (
 		user.last_name !== undefined

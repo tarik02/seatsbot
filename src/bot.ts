@@ -1,9 +1,9 @@
-import Telegraf, {ContextMessageUpdate, Markup} from 'telegraf';
+import Telegraf, { ContextMessageUpdate, Markup } from 'telegraf';
 import _ from 'lodash';
 
 import * as Seats from './seats';
 
-class SilentError extends Error {}
+class SilentError extends Error { }
 
 const sendSomethingWentWrong = async (ctx: ContextMessageUpdate, info?: string): Promise<never> => {
 	if (info !== undefined) {
@@ -121,11 +121,18 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 			return;
 		}
 
-		message.seats[i] = seat;
+		const newMessage: Seats.SeatsMessage = {
+			...message,
+			seats: message.seats.map((oldSeat, index) =>
+				index === i
+					? seat
+					: oldSeat
+			),
+		};
 
 		await Promise.all([
 			ctx.answerCbQuery(':) Ok'),
-			setMessage(ctx, message),
+			setMessage(ctx, newMessage),
 		]);
 	});
 
@@ -146,11 +153,18 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 			return;
 		}
 
-		message.seats[i] = undefined;
+		const newMessage: Seats.SeatsMessage = {
+			...message,
+			seats: message.seats.map((oldSeat, index) =>
+				index === i
+					? undefined
+					: oldSeat
+			),
+		};
 
 		await Promise.all([
 			ctx.answerCbQuery(':) Ok'),
-			setMessage(ctx, message),
+			setMessage(ctx, newMessage),
 		]);
 	});
 };
