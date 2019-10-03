@@ -3,6 +3,8 @@ import _ from 'lodash';
 
 import * as Seats from './seats';
 
+const MAX_BUTTONS_PER_ROW = 8;
+
 class SilentError extends Error { }
 
 const sendSomethingWentWrong = async (ctx: ContextMessageUpdate, info?: string): Promise<never> => {
@@ -24,15 +26,23 @@ const getCommandBody = async (ctx: ContextMessageUpdate): Promise<string> => {
 };
 
 const getButtonsPerRowCount = (totalCount: number): number => {
-	// max 5 buttons per row
-	const minRows = Math.ceil(totalCount / 5);
-
 	// would be cool to have a square set of buttons
-	const goodRows = Math.floor(Math.sqrt(totalCount));
+	const goodPerRowCount = Math.floor(Math.sqrt(totalCount));
 
-	return Math.max(
-		minRows,
-		goodRows,
+	const result = _.range(3, totalCount)
+		.map(i =>
+			totalCount % i == 0 && totalCount / i >= 3
+				? totalCount / i
+				: undefined
+		)
+		.filter((it): it is number => it !== undefined)
+		.filter(it => it <= MAX_BUTTONS_PER_ROW)
+		.concat(goodPerRowCount)[0]!
+	;
+
+	return Math.min(
+		MAX_BUTTONS_PER_ROW,
+		result,
 	);
 };
 
