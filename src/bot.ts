@@ -90,7 +90,7 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 	bot.command('select', async (ctx): Promise<void> => {
 		const body = await getCommandBody(ctx);
 
-		const match = body.match(/(\d+)(?:|\s+(.*))/);
+		const match = body.match(/^(\d+)(?:|\s+(.*))$/);
 		if (!match) {
 			return await sendSomethingWentWrong(ctx);
 		}
