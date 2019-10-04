@@ -105,7 +105,19 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 			return await sendSomethingWentWrong(ctx);
 		}
 
-		const message = Seats.create(match[2], Number(match[1]));
+		const count = Number(match[1]);
+
+		// Count should be in range 1..99 because Telegram (or just clients)
+		// limit count of buttons to 100, so we need to display these 99 buttons
+		// and the cancel button
+		if (!(!isNaN(count) && count >= 1 && count <= 99)) {
+			return await sendSomethingWentWrong(
+				ctx,
+				'Кількість варіантів вибору повинна бути в межах від 1 до 99.',
+			);
+		}
+
+		const message = Seats.create(match[2], count);
 
 		await setMessage(ctx, message, true);
 	});
