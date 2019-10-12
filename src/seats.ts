@@ -11,51 +11,94 @@ export type Seat = Readonly<
 
 export type SeatsMessage = Readonly<{
 	caption: string | undefined;
-	seats: ReadonlyArray<Seat | undefined>;
+	info: string | undefined;
+	seats: ReadonlyArray<ReadonlyArray<Seat | undefined>>;
 }>;
 
 export const FREE_SEAT_TEXT = 'вільно';
 
-export const create = (caption: string | undefined, seatsCount: number) => ({
+export const create = (
+	caption: string | undefined,
+	info: string | undefined,
+	placesCount: number,
+	placeSize: number = 1,
+): SeatsMessage => ({
 	caption,
-	seats: _.times(seatsCount, () => undefined),
+	info,
+	seats: _.times(placesCount, () => _.times(placeSize, () => undefined)),
 });
 
-export const parse = (text: string): SeatsMessage | undefined => {
-	const match = text.match(/^(?:(.*)\n)?(?:-{10}|-{40})\n(1 - .*)$/s);
-	if (!match) {
-		return;
+export const parseMessageStructure = (text: string): {
+	caption: string | undefined;
+	infoText: string | undefined;
+	seatsText: string;
+} | undefined => {
+	{
+		const match = text.match(/^(?:(.*)\n)?-{40}\n(.*)\n-{40}\n(1 - .*)$/s);
+		if (match) {
+			const [, caption, infoText, seatsText] = match;
+
+			return {
+				caption,
+				infoText,
+				seatsText,
+			};
+		}
 	}
 
-	const [, caption, seatsText] = match;
+	{
+		const match = text.match(/^(?:(.*)\n)?(?:-{10}|-{40})\n(1 - .*)$/s);
+		if (match) {
+			const [, caption, seatsText] = match;
 
-	const seats = seatsText.split('\n').map((line, i): Seat | undefined => {
+			return {
+				caption,
+				infoText: undefined,
+				seatsText,
+			};
+		}
+	}
+
+	return undefined;
+};
+
+export const parse = (text: string): SeatsMessage | undefined => {
+	const parsed = parseMessageStructure(text);
+	if (parsed === undefined) {
+		return undefined;
+	}
+
+	const {caption, infoText, seatsText} = parsed;
+
+	const seats = seatsText.split('\n').map((line, i): ReadonlyArray<Seat | undefined> => {
 		const match = line.match(/^(\d+) - (.*)$/);
 		if (!match || `${i + 1}` !== match[1]) {
 			throw new SeatsParseError();
 		}
 
-		const stringValue = match[2];
-		if (stringValue === FREE_SEAT_TEXT) {
-			return undefined;
-		}
+		return match[2].split(',').map(_.trim).map((stringValue): Seat | undefined => {
+			if (stringValue === FREE_SEAT_TEXT) {
+				return undefined;
+			}
 
-		const match2 = stringValue.match(/^(@\S+)(?: \((.*)\))?$/);
-		if (match2) {
+			const match2 = stringValue.match(/^(@\S+)(?: \((.*)\))?$/);
+			if (match2) {
+				return {
+					username: match2[1],
+					displayName: match2[2],
+				};
+			}
+
 			return {
-				username: match2[1],
-				displayName: match2[2],
+				username: undefined,
+				displayName: stringValue,
 			};
-		}
-
-		return {
-			username: undefined,
-			displayName: stringValue,
-		};
+		});
 	});
 
 	return {
 		caption,
+		info: infoText,
 		seats,
 	};
 };
@@ -79,34 +122,87 @@ export const show = (message: SeatsMessage): string => (
 			: message.caption + '\n'
 	) + '-'.repeat(40) + '\n' + (
 		message.seats
-			.map((seat, i) => `${i + 1} - ${showSeat(seat)}`)
+			.map((seats, i) => `${i + 1} - ${seats.map(showSeat).join(', ')}`)
 			.join('\n')
 	)
 );
 
-export const findSimilar = (message: SeatsMessage, seat: Seat): number | undefined => {
-	const index = message.seats.findIndex(other => {
-		if (other === undefined) {
-			return false;
+export const findSimilar = (message: SeatsMessage, seat: Seat): [number, number] | undefined => {
+	let index1 = -1;
+	for (const seats of message.seats) {
+		++index1;
+
+		let index2 = -1;
+		for (const other of seats) {
+			++index2;
+
+			if (other === undefined) {
+				continue;
+			}
+
+			if (false
+				// Bugfix for old messages
+				|| (seat.username === undefined && other!.username === '@undefined')
+				|| (true
+					&& (seat.username !== undefined || other!.username !== undefined)
+					&& (seat.username === other!.username)
+				)
+				|| seat.displayName === other!.displayName
+			) {
+				return [index1, index2];
+			}
 		}
+	}
 
-		// Bugfix for old messages
-		if (seat.username === undefined && other.username === '@undefined') {
-			return true;
-		}
+	return undefined;
+};
 
-		if (seat.username !== undefined || other.username !== undefined) {
-			return seat.username === other.username;
-		}
-
-		return seat.displayName === other.displayName;
-	});
-
-	if (index === -1) {
+export const joinPlace = (
+	message: SeatsMessage,
+	place: number,
+	seat: Seat,
+): SeatsMessage | undefined => {
+	const i = message.seats[place].findIndex(it => it === undefined);
+	if (i === -1) {
 		return undefined;
 	}
 
-	return index;
+	return {
+		...message,
+		seats: [
+			...message.seats.slice(0, place),
+			[
+				...message.seats[place].slice(0, i),
+				seat,
+				...message.seats[place].slice(i + 1),
+			],
+			...message.seats.slice(place + 1),
+		],
+	};
+};
+
+export const leavePlace = (
+	message: SeatsMessage,
+	seat: Seat,
+): SeatsMessage | undefined => {
+	const similar = findSimilar(message, seat);
+	if (similar === undefined) {
+		return undefined;
+	}
+	const [place, i] = similar;
+
+	return {
+		...message,
+		seats: [
+			...message.seats.slice(0, place),
+			[
+				...message.seats[place].slice(0, i),
+				...message.seats[place].slice(i + 1),
+				undefined,
+			],
+			...message.seats.slice(place + 1),
+		],
+	};
 };
 
 export const getButtons = (message: SeatsMessage) => (
