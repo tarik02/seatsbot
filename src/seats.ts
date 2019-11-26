@@ -15,7 +15,8 @@ export type SeatsMessage = Readonly<{
 	seats: ReadonlyArray<ReadonlyArray<Seat | undefined>>;
 }>;
 
-export const FREE_SEAT_TEXT = 'вільно';
+export const FREE_SEAT_TEXT = '—'; // NOTE: This is wide version of '-' ('—', not '-')
+export const LEGACY_FREE_SEAT_TEXT = 'вільно';
 
 export const create = (
 	caption: string | undefined,
@@ -77,7 +78,7 @@ export const parse = (text: string): SeatsMessage | undefined => {
 		}
 
 		return match[2].split(',').map(_.trim).map((stringValue): Seat | undefined => {
-			if (stringValue === FREE_SEAT_TEXT) {
+			if ([FREE_SEAT_TEXT, LEGACY_FREE_SEAT_TEXT].includes(stringValue)) {
 				return undefined;
 			}
 

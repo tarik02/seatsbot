@@ -2,16 +2,37 @@ import Telegraf, { ContextMessageUpdate, Markup } from 'telegraf';
 import _ from 'lodash';
 
 import * as Seats from './seats';
+import { tr } from './locale';
+import {
+	PLACES_COUNT_MIN,
+	PLACES_COUNT_MAX,
+	VARIANTS_COUNT_MIN,
+	VARIANTS_COUNT_MAX,
+	VARIANTS_PLACES_THRESHOLD,
+} from './config';
 
 const MAX_BUTTONS_PER_ROW = 8;
 
 class SilentError extends Error { }
 
-const sendSomethingWentWrong = async (ctx: ContextMessageUpdate, info?: string): Promise<never> => {
+type SendSomethingWentWrongOptions = {
+	send: (text: string) => Promise<any> | void,
+};
+
+const sendSomethingWentWrong = async (
+	ctx: ContextMessageUpdate,
+	info?: string,
+	options: Partial<SendSomethingWentWrongOptions> = {},
+): Promise<never> => {
+	const { send }: SendSomethingWentWrongOptions = {
+		send: text => ctx.reply(text),
+		...options,
+	};
+
 	if (info !== undefined) {
-		await ctx.reply(':( ' + info);
+		await send(tr(ctx, 'Something went wrong', { text: info }));
 	} else {
-		await ctx.reply(':( Щось пішло не так...');
+		await send(tr(ctx, 'Something went wrong'));
 	}
 
 	throw new SilentError();
@@ -54,7 +75,7 @@ const setMessage = async (
 	const buttons = Seats.getButtons(message);
 	const markup = Markup.inlineKeyboard(
 		_.chunk(buttons, getButtonsPerRowCount(buttons.length)).concat([
-			[Markup.callbackButton('Скасувати вибір', 'leave')],
+			[Markup.callbackButton(tr(ctx, 'Cancel selection'), 'leave')],
 		]),
 	);
 	markup.oneTime(false).resize(true);
@@ -113,24 +134,32 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 		// Count should be in range 1..99 because Telegram (or just clients)
 		// limit count of buttons to 100, so we need to display these 99 buttons
 		// and the cancel button
-		if (!(!isNaN(placesCount) && placesCount >= 1 && placesCount <= 99)) {
+		if (!(!isNaN(placesCount) && placesCount >= VARIANTS_COUNT_MIN && placesCount <= VARIANTS_COUNT_MAX)) {
 			return await sendSomethingWentWrong(
 				ctx,
-				'Кількість варіантів вибору повинна бути в межах від 1 до 99.',
+				tr(ctx, 'Count of the variants should be between :low and :high.', {
+					low: VARIANTS_COUNT_MIN,
+					high: VARIANTS_COUNT_MAX,
+				}),
 			);
 		}
 
-		if (!(!isNaN(placeSize) && placeSize >= 1 && placeSize <= 5)) {
+		if (!(!isNaN(placeSize) && placeSize >= PLACES_COUNT_MIN && placeSize <= PLACES_COUNT_MAX)) {
 			return await sendSomethingWentWrong(
 				ctx,
-				'Кількість місць в варіанті вибору повинна бути в межах від 1 до 5.',
+				tr(ctx, 'Count of places in every variant should be between :low and :high.', {
+					low: PLACES_COUNT_MIN,
+					high: PLACES_COUNT_MAX,
+				}),
 			);
 		}
 
-		if (!(placesCount * placeSize <= 100)) {
+		if (!(placesCount * placeSize <= VARIANTS_PLACES_THRESHOLD)) {
 			return await sendSomethingWentWrong(
 				ctx,
-				'Кількість варіантів (a) та місць (b) не повинна бути занадто великою (a * b <= 100).',
+				tr(ctx, 'Count of the variants (a) and the places (b) should not be too high (a * b <= 100).', {
+					value: VARIANTS_PLACES_THRESHOLD,
+				}),
 			);
 		}
 
@@ -151,23 +180,29 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 		const seat = Seats.fromUser(query.from);
 
 		if (message === undefined) {
-			await ctx.answerCbQuery(':( Щось пішло не так...');
+			await sendSomethingWentWrong(ctx, undefined, {
+				send: it => ctx.answerCbQuery(it),
+			});
 			return;
 		}
 
 		if (Seats.findSimilar(message, seat) !== undefined) {
-			await ctx.answerCbQuery(':( Ви вже вибрали один із варіантів.');
+			await sendSomethingWentWrong(ctx, tr(ctx, 'You have already selected one of the variants.'), {
+				send: it => ctx.answerCbQuery(it),
+			});
 			return;
 		}
 
 		const newMessage = Seats.joinPlace(message, i, seat);
 		if (newMessage === undefined) {
-			await ctx.answerCbQuery(':( Цей варіант вже вибраний кимось іншим.');
+			await sendSomethingWentWrong(ctx, tr(ctx, 'This variant has no free places.'), {
+				send: it => ctx.answerCbQuery(it),
+			});
 			return;
 		}
 
 		await Promise.all([
-			ctx.answerCbQuery(':) Ok'),
+			ctx.answerCbQuery(tr(ctx, ':) Ok')),
 			setMessage(ctx, newMessage),
 		]);
 	});
@@ -178,18 +213,22 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 		const seat = Seats.fromUser(query.from);
 
 		if (message === undefined) {
-			await ctx.answerCbQuery(':( Щось пішло не так...');
+			await sendSomethingWentWrong(ctx, undefined, {
+				send: it => ctx.answerCbQuery(it),
+			});
 			return;
 		}
 
 		const newMessage = Seats.leavePlace(message, seat);
 		if (newMessage === undefined) {
-			await ctx.answerCbQuery(':( Ви не вибрали жоден із варіантів.');
+			await sendSomethingWentWrong(ctx, tr(ctx, 'You have not selected any variant.'), {
+				send: it => ctx.answerCbQuery(it),
+			});
 			return;
 		}
 
 		await Promise.all([
-			ctx.answerCbQuery(':) Ok'),
+			ctx.answerCbQuery(tr(ctx, ':) Ok')),
 			setMessage(ctx, newMessage),
 		]);
 	});
