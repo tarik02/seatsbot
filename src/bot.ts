@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/camelcase */
+
 import Telegraf, { ContextMessageUpdate, Markup } from 'telegraf';
 import _ from 'lodash';
 
@@ -16,7 +18,7 @@ const MAX_BUTTONS_PER_ROW = 8;
 class SilentError extends Error { }
 
 type SendSomethingWentWrongOptions = {
-	send: (text: string) => Promise<any> | void,
+	send: (text: string) => Promise<any> | void;
 };
 
 const sendSomethingWentWrong = async (
@@ -70,7 +72,7 @@ const getButtonsPerRowCount = (totalCount: number): number => {
 const setMessage = async (
 	ctx: ContextMessageUpdate,
 	message: Seats.SeatsMessage,
-	create: boolean = false,
+	create = false,
 ): Promise<void> => {
 	const buttons = Seats.getButtons(message);
 	const markup = Markup.inlineKeyboard(
@@ -157,7 +159,7 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 		if (!(placesCount * placeSize <= VARIANTS_PLACES_THRESHOLD)) {
 			return await sendSomethingWentWrong(
 				ctx,
-				tr(ctx, 'Count of the variants (a) and the places (b) should not be too high (a * b <= 100).', {
+				tr(ctx, 'Count of the variants (a) and the places (b) should not be too high (a * b <= :value).', {
 					value: VARIANTS_PLACES_THRESHOLD,
 				}),
 			);
@@ -171,6 +173,25 @@ export const main = async (bot: Telegraf<ContextMessageUpdate>) => {
 		);
 
 		await setMessage(ctx, message, true);
+	});
+
+	bot.command('variants', async (ctx): Promise<void> => {
+		const body = await getCommandBody(ctx);
+
+		const match = body.match(/^(\d+)\+(\d+)(?:\/(\d+))?$/);
+		if (!match) {
+			return await sendSomethingWentWrong(ctx);
+		}
+
+		const count = Number(match[1]);
+		const offset = Number(match[2]);
+		const limit = Number(match[3] || Infinity);
+
+		const text = _.times(count, it => `${it + 1} => ${(it + offset) % count + 1}`).slice(0, limit).join('\n');
+
+		await ctx.replyWithMarkdown('```\n' + text + '\n```', {
+			reply_to_message_id: ctx.message!.message_id,
+		});
 	});
 
 	bot.action(/^enter:(\d+)$/, async ctx => {
