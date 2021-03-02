@@ -13,8 +13,7 @@
 	],
 	"functions": {
 		"api/index.ts": {
-			"runtime": "@now/node@1.4.1",
-			"includeFiles": "src/locales/*.yml"
+			"runtime": "@vercel/node@1.0.0"
 		}
 	}
 }
