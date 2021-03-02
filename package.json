@@ -34,9 +34,6 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"engines": {
-		"node": ">10.0.0"
-	},
 	"dependencies": {
 		"dotenv": "^8.1.0",
 		"fs-extra": "^8.1.0",
