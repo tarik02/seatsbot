@@ -40,7 +40,7 @@
 	"dependencies": {
 		"dotenv": "^8.1.0",
 		"fs-extra": "^8.1.0",
-		"lodash": "^4.17.15",
+		"lodash": "^4.17.19",
 		"micro-bot": "^2.5.3",
 		"telegraf": "^3.32.0",
 		"tslib": "^1.10.0"
