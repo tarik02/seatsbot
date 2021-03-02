@@ -5,16 +5,16 @@
 		"NODE_ENV": "production",
 		"BOT_TOKEN": "@seatsbot_token"
 	},
-	"builds": [
-		{
-			"src": "src/now.ts",
-			"use": "@now/node"
-		}
-	],
 	"routes": [
 		{
 			"src": "/.*",
-			"dest": "src/now.ts"
+			"dest": "api/index.ts"
 		}
-	]
+	],
+	"functions": {
+		"api/index.ts": {
+			"runtime": "@now/node@1.4.1",
+			"includeFiles": "src/locales/*.yml"
+		}
+	}
 }

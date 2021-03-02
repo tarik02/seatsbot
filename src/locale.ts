@@ -1,18 +1,19 @@
 import fs from 'fs';
 import path from 'path';
+
 import { ContextMessageUpdate } from 'telegraf';
 import _ from 'lodash';
 
 export type LocaleMessages = {
 	'Something went wrong': { text?: string };
-	'Cancel selection': {},
-	'Count of the variants should be between :low and :high.': { low: number, high: number },
-	'Count of places in every variant should be between :low and :high.': { low: number, high: number },
-	'Count of the variants (a) and the places (b) should not be too high (a * b <= :value).': { value: number },
-	'You have already selected one of the variants.': {},
-	'This variant has no free places.': {},
-	'You have not selected any variant.': {},
-	':) Ok': {},
+	'Cancel selection': {};
+	'Count of the variants should be between :low and :high.': { low: number; high: number };
+	'Count of places in every variant should be between :low and :high.': { low: number; high: number };
+	'Count of the variants (a) and the places (b) should not be too high (a * b <= :value).': { value: number };
+	'You have already selected one of the variants.': {};
+	'This variant has no free places.': {};
+	'You have not selected any variant.': {};
+	':) Ok': {};
 };
 
 export type FullLocale = {

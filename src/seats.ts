@@ -5,8 +5,8 @@ import { User } from 'telegram-typings';
 export class SeatsParseError extends Error { }
 
 export type Seat = Readonly<
-	| { username: string; displayName: string | undefined; }
-	| { username: undefined; displayName: string; }
+	| { username: string; displayName: string | undefined }
+	| { username: undefined; displayName: string }
 >;
 
 export type SeatsMessage = Readonly<{
@@ -22,7 +22,7 @@ export const create = (
 	caption: string | undefined,
 	info: string | undefined,
 	placesCount: number,
-	placeSize: number = 1,
+	placeSize = 1,
 ): SeatsMessage => ({
 	caption,
 	info,

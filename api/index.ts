@@ -1,8 +1,9 @@
-import { NowRequest, NowResponse } from '@now/node';
-import Telegraf from 'telegraf';
 import process from 'process';
 
-import { main } from './bot';
+import { NowRequest, NowResponse } from '@vercel/node';
+import Telegraf from 'telegraf';
+
+import { main } from '../src/bot';
 
 if (typeof process.env.BOT_TOKEN !== 'string') {
 	console.error('Environment variable BOT_TOKEN is not specified.');

@@ -1,7 +1,8 @@
+import Telegraf from 'telegraf';
+
 import { main } from './bot';
 import { readEnv } from './env';
 
-import Telegraf from 'telegraf';
 
 (async () => {
 	const env = await readEnv();

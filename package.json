@@ -46,13 +46,13 @@
 		"tslib": "^1.10.0"
 	},
 	"devDependencies": {
-		"@now/node": "^1.0.1",
 		"@types/dotenv": "^6.1.1",
 		"@types/fs-extra": "^8.0.0",
 		"@types/lodash": "^4.14.141",
 		"@types/node": "^12.7.8",
 		"@typescript-eslint/eslint-plugin": "^2.3.2",
 		"@typescript-eslint/parser": "^2.3.2",
+		"@vercel/node": "^1.9.0",
 		"eslint": "^6.5.0",
 		"eslint-import-resolver-typescript": "^1.1.1",
 		"eslint-plugin-editorconfig": "^2.1.2",
